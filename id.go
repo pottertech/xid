@@ -168,7 +168,14 @@ func New() ID {
 func NewWithTime(t time.Time) ID {
 	var id ID
 	// Timestamp, 4 bytes, big endian
-	binary.BigEndian.PutUint32(id[:], uint32(t.Unix()))
+	// Validate timestamp fits in uint32 range (1970-01-01 to 2106-02-07)
+	unix := t.Unix()
+	if unix < 0 {
+		unix = 0
+	} else if unix > 0xFFFFFFFF {
+		unix = 0xFFFFFFFF
+	}
+	binary.BigEndian.PutUint32(id[:], uint32(unix))
 	// Machine ID, 3 bytes
 	id[4] = machineID[0]
 	id[5] = machineID[1]
